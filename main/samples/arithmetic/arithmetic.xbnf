@@ -1,0 +1,31 @@
+// this xbnf defines the grammar to parse arithmetic expressions
+
+exprs		    = expr { { "\u000A" | "\u000D"}<1,> expr } // a newline between expr
+expr		    = term { term_operator term } 
+term_operator   = ("+" | "-")
+term		    = factor { factor_operator factor }
+factor_operator = ( "*" | "/" )
+factor		= literal | variable | ( "(" expr ")" )
+literal		= integer | float
+integer     = integer_dec | integer_oct | integer_hex | integer_bin
+integer_dec = [ '-' ] digit_dec { digit_dec } 
+integer_hex = '0x' digit_hex { digit_hex }
+integer_oct = '0o' digit_oct { digit_oct }
+integer_bin = '0b' digit_bin { digit_bin }
+float       = [ '-' ] { digit_dec } '.' digit_dec { digit_dec }
+digit_dec           = '0'-'9'
+digit_hex           = '0'-'9' | 'A'-'F' | 'a'-'f'
+digit_oct           = '0'-'7'
+digit_bin           = '0'-'1'
+variable    = letter { letter | digit_dec | '_' }
+letter          = letter_lowercase | letter_uppercase
+letter_uppercase    = 'A'-'Z'
+letter_lowercase    = 'a'-'z'
+
+//letter_uppercase    = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
+//letter_lowercase    = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+//digit_dec           = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+//digit_hex           = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
+//digit_oct           = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7'
+//digit_bin           = '0' | '1'
+

@@ -1,0 +1,8 @@
+
+SPACE   = \u0020  // space
+TAB     = \u0009  // horizontal tab
+NL      = \u000A  // new line
+key = ~{SPACE|TAB|NL} < "" '\\' ^NL ~("="|":") >
+value = ~{SPACE|TAB|NL} < "" '\\' ~( NL | EOF )>
+emptykey = ~{SPACE|TAB|NL} < "" ^('='|':') ~( NL | EOF )> 
+property = emptykey | ( key value ) ~{ SPACE|NL|TAB }
