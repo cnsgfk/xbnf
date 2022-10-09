@@ -20,6 +20,7 @@ func (inst *GroupRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 	node.Sticky = evalResult.Sticky
 	node.ChildNodes = append(node.ChildNodes, evalResult.Node)
 	evalResult.Node = node
+	node.Position = evalResult.Node.Position
 	return evalResult
 }
 

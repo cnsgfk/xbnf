@@ -22,7 +22,7 @@ func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadi
 		resultsMatched = nil
 		resultFound = nil
 		for _, rule := range group {
-			cs = NewCharstreamPrepend(charstream, evalResult.CharsRead)
+			cs = newCharstreamPrepend(charstream, evalResult.CharsRead)
 			result := rule.Eval(grammar, cs, flagLeadingSpaces)
 			if !result.Sticky { // as long as one of the choices is non-sticky, the result should be non-sticky
 				sticky = false
@@ -75,6 +75,7 @@ func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadi
 	if resultFound != nil { // we found a result
 		node.ChildNodes = append(node.ChildNodes, resultFound.Node)
 		node.Sticky = evalResult.Sticky
+		node.Position = resultFound.Node.Position
 		evalResult.Node = node
 		evalResult.CharsUnused = evalResult.CharsRead[resultFound.countCharsUsed():]
 	} else {

@@ -26,6 +26,7 @@ func (inst *OptionRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadi
 		return evalResult
 	}
 	node.ChildNodes = append(node.ChildNodes, evalResult.Node)
+	node.Position = evalResult.Node.Position
 	evalResult.Node = node
 	return evalResult
 }

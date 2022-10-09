@@ -44,6 +44,7 @@ func (inst *EOFRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingS
 			NonData:  inst.nondata,
 			Sticky:   true,
 			Chars:    []rune{EOFChar},
+			Position: charstream.Position(),
 		}
 	} else {
 		evalResult.CharsUnused = evalResult.CharsRead

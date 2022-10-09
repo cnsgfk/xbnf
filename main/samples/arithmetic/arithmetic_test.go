@@ -19,7 +19,7 @@ func evalRule(t *testing.T, grammar *xbnf.Grammar, ruleName string, sample strin
 	}
 	rule := record.Rule()
 	t.Logf("====> RULE  : %s = %s", ruleName, rule.String())
-	cs := xbnf.NewCharstreamString(sample)
+	cs := xbnf.NewCharstreamFromString(sample)
 	result := rule.Eval(grammar, cs, xbnf.SUGGEST_SKIP)
 	t.Logf("CharsRead:%s*", string(result.CharsRead))
 	t.Logf("CharsUnused:%s*", string(result.CharsUnused))
@@ -97,7 +97,7 @@ func TestMain(t *testing.T) {
 		}
 		outputText := string(output)
 		outputText = strings.ReplaceAll(outputText, "\r\n", "\n") // convert from windows to unix newline format
-		charstream := xbnf.NewCharstreamString(string(sample))
+		charstream := xbnf.NewCharstreamFromString(string(sample))
 		ast, err := grammar.Eval(charstream, xbnf.LevelBasic)
 		if err != nil {
 			t.Errorf("Failed: %s", err)
@@ -121,29 +121,15 @@ func TestMain(t *testing.T) {
 	}
 	t.Logf("Grammar\n%s", g.Serialize(false))
 	t.Run("letter0.0", func(t *testing.T) {
-		cs := xbnf.NewCharstreamString("age")
+		cs := xbnf.NewCharstreamFromString("age")
 		evalRuleCS(t, g, "letter_lowercase", cs, "a")
 	})
 	t.Run("letter0.1", func(t *testing.T) {
-		cs := xbnf.NewCharstreamString("Age")
+		cs := xbnf.NewCharstreamFromString("Age")
 		evalRuleCS(t, g, "letter", cs, "A")
-	})
-	t.Run("letter1", func(t *testing.T) {
-		cs := xbnf.NewCharstreamString(" Age")
-		cs.Next()
-		cs.Next()
-		charstream := xbnf.NewCharstreamPrepend(cs, []rune(" A"))
-		evalRuleCS(t, g, "letter", charstream, "A")
 	})
 	t.Run("variable0", func(t *testing.T) {
 		evalRule(t, g, "variable", "Age", "Age")
-	})
-	t.Run("variable1", func(t *testing.T) {
-		cs := xbnf.NewCharstreamString(" Age")
-		cs.Next()
-		cs.Next()
-		charstream := xbnf.NewCharstreamPrepend(cs, []rune(" A"))
-		evalRuleCS(t, g, "variable", charstream, "Age")
 	})
 	t.Run("factor0", func(t *testing.T) {
 		evalRule(t, g, "factor", "1\nA", "1")

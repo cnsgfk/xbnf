@@ -13,7 +13,7 @@ func evalGrammar(t *testing.T, grammar *xbnf.Grammar, caseIsGood bool, caseSampl
 	}
 	t.Logf("============================================================")
 	t.Logf("====> sample: [%s]", logSample)
-	cs := xbnf.NewCharstreamString(caseSample)
+	cs := xbnf.NewCharstreamFromString(caseSample)
 	treeConf := xbnf.DefaultNodeTreeConfig()
 	treeConf.PrintNonleafNodeText = false
 	treeConf.VerboseNodeText = true

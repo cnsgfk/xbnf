@@ -30,6 +30,7 @@ func (inst *TerminalRangeRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		Virtual:  inst.virtual,
 		NonData:  inst.nondata,
 		Sticky:   true,
+		Position: charstream.PositionLookup(charstream.Cursor() - 1),
 	}
 
 	if flagLeadingSpaces == SUGGEST_SKIP {

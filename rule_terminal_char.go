@@ -35,10 +35,11 @@ func (inst *TerminalCharRule) Eval(grammar *Grammar, charstream ICharstream, fla
 		skippedSpaces := charstream.SkipSpaces()
 		evalResult.CharsRead = append(evalResult.CharsRead, skippedSpaces...)
 		// inst.text may be a whitespace, so we need to check if it's among the skippedSpaces
-		if IsWhiteSpace(inst.text) {
+		if IsWhiteSpace(inst.text) && len(skippedSpaces) > 0 {
 			for i, wspace := range skippedSpaces {
 				if wspace == inst.text {
 					node.Chars = append(node.Chars, inst.text)
+					node.Position = charstream.PositionLookup(charstream.Cursor() - len(skippedSpaces) + i)
 					evalResult.Node = node
 					evalResult.CharsUnused = skippedSpaces[i+1:]
 					return evalResult
@@ -57,6 +58,7 @@ func (inst *TerminalCharRule) Eval(grammar *Grammar, charstream ICharstream, fla
 		}
 		return evalResult
 	}
+	node.Position = charstream.Position()
 	char = charstream.Next()
 	evalResult.CharsRead = append(evalResult.CharsRead, char)
 	node.Chars = append(node.Chars, char)

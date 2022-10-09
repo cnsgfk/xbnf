@@ -23,11 +23,14 @@ func DefaultNodeTreeConfig() *NodeTreeConfig {
 type Node struct {
 	RuleType   Type
 	RuleName   string
-	Sticky     bool
-	Virtual    bool
-	NonData    bool
 	Chars      []rune
 	ChildNodes []*Node
+	Position   *Position
+
+	// following should be private
+	Sticky  bool
+	Virtual bool
+	NonData bool
 }
 
 func (inst *Node) CountNodes() int {
@@ -232,7 +235,7 @@ func (inst *Node) RemoveRedundantNodes() {
 // The input config must not be nil, or this call will panic
 func (inst *Node) header(config *NodeTreeConfig) string {
 	var buf strings.Builder
-	buf.WriteString(fmt.Sprintf("%s", inst.RuleName))
+	buf.WriteString(fmt.Sprintf("%s:%s", inst.Position.String(), inst.RuleName))
 	if config.PrintRuleType {
 		buf.WriteString(fmt.Sprintf("/%s", inst.RuleType))
 	}

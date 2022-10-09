@@ -16,7 +16,7 @@ func (inst *ConcatenateRule) Eval(grammar *Grammar, charstream ICharstream, flag
 	node := &Node{RuleType: TypeConcatenate, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
 	cs := charstream
 	for _, rule := range inst.rules {
-		cs = NewCharstreamPrepend(cs, evalResult.CharsUnused)
+		cs = newCharstreamPrepend(cs, evalResult.CharsUnused)
 		result := rule.Eval(grammar, cs, flagLeadingSpaces)
 		//
 		// Update evalResult.CharsRead and evalResult.CharsUnused
@@ -53,6 +53,10 @@ func (inst *ConcatenateRule) Eval(grammar *Grammar, charstream ICharstream, flag
 				evalResult.Error = result.Error
 			}
 			return evalResult
+		}
+
+		if node.Position == nil {
+			node.Position = result.Node.Position
 		}
 
 		// option node should be treated specially to decide whether or not next eval should skip leading spaces

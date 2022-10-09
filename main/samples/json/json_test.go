@@ -8,7 +8,7 @@ import (
 	"github.com/cnsgfk/xbnf"
 )
 
-func TestJSON(t *testing.T) {
+func TestJson(t *testing.T) {
 	tester := func(t *testing.T, grammar *xbnf.Grammar, sampleName string) {
 		t.Logf("====> Sample: %s", sampleName)
 		sampleFile := sampleName + ".json"
@@ -26,7 +26,7 @@ func TestJSON(t *testing.T) {
 			return
 		}
 		outputText := string(output)
-		charstream := xbnf.NewCharstreamString(string(sample))
+		charstream := xbnf.NewCharstreamFromString(string(sample))
 		ast, err := grammar.Eval(charstream, xbnf.LevelRaw)
 		if err != nil {
 			t.Errorf("Failed: %s", err)
@@ -51,13 +51,13 @@ func TestJSON(t *testing.T) {
 		t.Errorf("Failed: invalid xbnf file: %s", err)
 		return
 	}
-	t.Run("sample1", func(t *testing.T) {
+	t.Run("t1.sample1", func(t *testing.T) {
 		tester(t, g, "sample1")
 	})
-	t.Run("sample2", func(t *testing.T) {
+	t.Run("t2.sample2", func(t *testing.T) {
 		tester(t, g, "sample2")
 	})
-	t.Run("sample3", func(t *testing.T) {
+	t.Run("t3.sample3", func(t *testing.T) {
 		tester(t, g, "sample3")
 	})
 }
@@ -80,7 +80,7 @@ func TestNondata(t *testing.T) {
 			return
 		}
 		outputText := string(output)
-		charstream := xbnf.NewCharstreamString(string(sample))
+		charstream := xbnf.NewCharstreamFromString(string(sample))
 		ast, err := grammar.Eval(charstream, xbnf.LevelRaw)
 		if err != nil {
 			t.Errorf("Failed: %s", err)

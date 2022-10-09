@@ -70,6 +70,7 @@ func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, f
 		}
 		return evalResult
 	}
+	node.Position = charstream.PositionLookup(charstream.Cursor() - len(inst.text))
 	node.Chars = append(node.Chars, inst.text...)
 	evalResult.Node = node
 	return evalResult

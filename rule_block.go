@@ -61,7 +61,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		RuleName: inst.name,
 		Virtual:  inst.virtual,
 		NonData:  inst.nondata,
-		Sticky:   false, // block of text is always non-sticky
+		Sticky:   false, // block of text is always non-sticky,
 	}
 
 	cs := charstream
@@ -74,6 +74,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		node.ChildNodes = append(node.ChildNodes, result.Node) // the 1st child of block node is always open node
 		charsUsed = append(charsUsed, result.CharsRead[:result.countCharsUsed()]...)
 		charsUnused = result.CharsUnused
+		node.Position = result.Node.Position
 	} else {
 		evalResult.Error = fmt.Errorf("missing block open token")
 		evalResult.CharsRead = result.CharsRead
@@ -87,7 +88,8 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		Sticky:   true,
 	}
 	node.ChildNodes = append(node.ChildNodes, content)
-	cs = NewCharstreamPrepend(cs, charsUnused)
+	cs = newCharstreamPrepend(cs, charsUnused)
+	content.Position = cs.Position()
 	var closeResult *EvalResult
 	for {
 		// check if we have an escape as next match
@@ -99,7 +101,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 				charsUnused = result.CharsUnused
 				content.Chars = append(content.Chars, result.charsUsed()...) // the escape char should be preserved
 				// check if there is an escape token after escape token
-				cs = NewCharstreamPrepend(cs, charsUnused)
+				cs = newCharstreamPrepend(cs, charsUnused)
 				result = inst.escape.Eval(grammar, cs, NOT_SKIP) // do not skip space chars
 				if result.Node != nil {
 					// see an escape token after an escape token
@@ -117,7 +119,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		}
 
 		// find exclude match(es)
-		cs = NewCharstreamPrepend(cs, charsUnused)
+		cs = newCharstreamPrepend(cs, charsUnused)
 		if len(inst.excludes) > 0 {
 			resultExclude := mostGreedy(grammar, cs, NOT_SKIP, inst.excludes)
 			if resultExclude.Node != nil { // found one
@@ -137,7 +139,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		}
 
 		// check close rule
-		cs = NewCharstreamPrepend(cs, charsUnused)
+		cs = newCharstreamPrepend(cs, charsUnused)
 		result := inst.close.Eval(grammar, cs, NOT_SKIP) // do not skip space
 		charsUnused = result.CharsUnused
 		if result.Node != nil {
@@ -154,7 +156,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 			charsUsed = append(charsUsed, result.CharsRead[:result.countCharsUsed()]...)
 			break
 		}
-		cs = NewCharstreamPrepend(cs, charsUnused)
+		cs = newCharstreamPrepend(cs, charsUnused)
 		char := cs.Peek()
 		if char == EOFChar {
 			charsUsed = append(charsUsed, content.Chars...)

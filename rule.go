@@ -257,7 +257,7 @@ func mostGreedy(grammar *Grammar, charStream ICharstream, flagLeadingSpaces int,
 	var maxCharsRead []rune // the max chars read to evaluate all rules
 	cs := charStream
 	for _, rule := range rules {
-		cs := NewCharstreamPrepend(cs, maxCharsRead)
+		cs := newCharstreamPrepend(cs, maxCharsRead)
 		result := rule.Eval(grammar, cs, flagLeadingSpaces)
 		if len(maxCharsRead) < len(result.CharsRead) {
 			maxCharsRead = result.CharsRead

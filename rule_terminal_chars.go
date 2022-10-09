@@ -30,6 +30,7 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		Sticky:   true,
 	}
 
+	startCursor := charstream.Cursor()
 	text := inst.text
 	if flagLeadingSpaces == SUGGEST_SKIP {
 		leadingWSpaces := leadingWhiteSpace(text)
@@ -44,6 +45,7 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 			}
 			return evalResult
 		}
+		startCursor = startCursor + len(skippedWSpaces)
 		// now we need to check if the leadingWSpace matches the end of skippedWSpace
 		skippedWSpaces = skippedWSpaces[len(skippedWSpaces)-len(leadingWSpaces):]
 		for i, skippedWSpace := range skippedWSpaces {
@@ -69,6 +71,7 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		}
 		return evalResult
 	}
+	node.Position = charstream.PositionLookup(startCursor)
 	node.Chars = append(node.Chars, inst.text...)
 	evalResult.Node = node
 	return evalResult

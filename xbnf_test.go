@@ -19,7 +19,7 @@ func testRule(t *testing.T, grammar *Grammar, ruleName string, sample string, ex
 	}
 	rule := record.Rule()
 	t.Logf("====> RULE  : %s = %s", ruleName, rule.String())
-	cs := NewCharstreamString(sample)
+	cs := NewCharstreamFromString(sample)
 	result := rule.Eval(grammar, cs, SUGGEST_SKIP)
 	t.Logf("CharsRead:%s*", string(result.CharsRead))
 	t.Logf("CharsUnused:%s*", string(result.CharsUnused))
@@ -120,7 +120,7 @@ func evalRule(t *testing.T, expectedResult Expected, grammar *Grammar, ruleName 
 	}
 	rule := record.rule
 	t.Logf("====> RULE  : %s = %s", ruleName, rule.String())
-	cs := NewCharstreamString(sample)
+	cs := NewCharstreamFromString(sample)
 	result := rule.Eval(grammar, cs, SUGGEST_SKIP)
 	verdict := expectedResult.Verdict(t, result)
 	//result.MergeLeafNodes()
@@ -138,7 +138,7 @@ func TestGrammarparse(t *testing.T) {
 	tester := func(g *Grammar, ruleStr string, expect string) {
 		t.Logf("====> Sample: %s", ruleStr)
 		t.Logf("====> Expect: %s", expect)
-		cs := NewCharstreamString(ruleStr)
+		cs := NewCharstreamFromString(ruleStr)
 		rule, err := g.parse("", cs, []rune{EOFChar})
 		if err != nil {
 			t.Logf("====> Result: %s", err)
@@ -509,69 +509,69 @@ func TestBlock(t *testing.T) {
 		return
 	}
 	t.Logf("\nGrammar:%s", grammar.Serialize(false))
-	t.Run("test1.0", func(t *testing.T) {
+	t.Run("t1.0", func(t *testing.T) {
 		testRule(t, grammar, "string_dq", `"double-quote block"`, `"double-quote block"`)
 	})
-	t.Run("test1.1", func(t *testing.T) {
+	t.Run("t2.0", func(t *testing.T) {
 		testRule(t, grammar, "string_sq", `'single-quote block'`, `'single-quote block'`)
 	})
-	t.Run("test2", func(t *testing.T) {
+	t.Run("t3", func(t *testing.T) {
 		testRule(t, grammar, "comment_ml", "  /* the block \ncomment   */  ", "/* the block \ncomment   */")
 	})
-	t.Run("test3", func(t *testing.T) {
+	t.Run("t4", func(t *testing.T) {
 		testRule(t, grammar, "comment_ml", "  /* the block comment */  ", "/* the block comment */")
 	})
-	t.Run("test4", func(t *testing.T) {
+	t.Run("t4", func(t *testing.T) {
 		testRule(t, grammar, "string_dq", `"double-quote block"`, `"double-quote block"`)
 	})
-	t.Run("test5", func(t *testing.T) {
+	t.Run("t5", func(t *testing.T) {
 		testRule(t, grammar, "comment_line", `// comments here  `, `// comments here  `)
 	})
-	t.Run("test6", func(t *testing.T) {
+	t.Run("t6", func(t *testing.T) {
 		// string1 defines the open and close double quote as string, so need extra space before the close quote
 		testRule(t, grammar, "string1", `  "/* the block comment */"`, `"/* the block comment */"`)
 	})
-	t.Run("test7", func(t *testing.T) {
+	t.Run("t7", func(t *testing.T) {
 		testRule(t, grammar, "string", ` " this \" escape "`, `" this \" escape "`)
 	})
-	t.Run("test8", func(t *testing.T) {
+	t.Run("t8", func(t *testing.T) {
 		testRule(t, grammar, "string", ` " this \" escape with \n new line"`, `" this \" escape with \n new line"`)
 	})
-	t.Run("test9", func(t *testing.T) {
+	t.Run("t9", func(t *testing.T) {
 		testRule(t, grammar, "string", ` " this \\" escape "`, `" this \\"`)
 	})
-	t.Run("test10", func(t *testing.T) {
+	t.Run("t10", func(t *testing.T) {
 		testRule(t, grammar, "key", " this key = that value ", `this key =`)
 	})
-	t.Run("test11", func(t *testing.T) {
+	t.Run("t11", func(t *testing.T) {
 		testRule(t, grammar, "key", " this \\= key = that value ", `this \= key =`)
 	})
-	t.Run("test12", func(t *testing.T) {
+	t.Run("t12", func(t *testing.T) {
 		testRule(t, grammar, "value", " this is a value ", `this is a value `)
 	})
-	t.Run("test13", func(t *testing.T) {
+	t.Run("t13", func(t *testing.T) {
 		testRule(t, grammar, "value", " this is \\\n a value ", "this is \\\n a value ")
 	})
-	t.Run("test14", func(t *testing.T) {
+	t.Run("t14", func(t *testing.T) {
 		testRule(t, grammar, "property", " key = value ", "key = value ")
 	})
-	t.Run("test15", func(t *testing.T) {
+	t.Run("t15", func(t *testing.T) {
 		testRule(t, grammar, "keyempty", " empty key ", `empty key `)
 	})
-	t.Run("test16", func(t *testing.T) {
+	t.Run("t16", func(t *testing.T) {
 		testRule(t, grammar, "keyempty", " empty key = ", ``)
 	})
-	t.Run("test17", func(t *testing.T) {
+	t.Run("t17", func(t *testing.T) {
 		testRule(t, grammar, "string", `"sun1.opacity = (sun1.opacity / 100) * 90;"`, `"sun1.opacity = (sun1.opacity / 100) * 90;"`)
 	})
-	t.Run("attr.1", func(t *testing.T) {
+	t.Run("t.18.attr.1", func(t *testing.T) {
 		testRule(t, grammar, "attr", ` "empty key": = ,`, `"empty key" : = `)
 	})
-	t.Run("attr.ambiguity", func(t *testing.T) {
+	t.Run("t.19.attr.ambiguity", func(t *testing.T) {
 		testRule(t, grammar, "attr1", ` "empty key": true ,`, `"empty key" : true`)
 		testRule(t, grammar, "attr1", ` "empty key": true,`, `"empty key" : true`)
 	})
-	t.Run("attrs", func(t *testing.T) {
+	t.Run("t.20.attrs", func(t *testing.T) {
 		testRule(t, grammar, "attrs", ` "empty key": = ,"kevin xie": 89~#`, `"empty key" : = , "kevin xie" : 89~#`)
 	})
 }
@@ -629,7 +629,7 @@ func TestVirtual(t *testing.T) {
 		}
 		rule := record.rule
 		t.Logf("====> RULE  : %s = %s", ruleName, rule.String())
-		cs := NewCharstreamString(sample)
+		cs := NewCharstreamFromString(sample)
 		result := rule.Eval(g, cs, SUGGEST_SKIP)
 		if result.Node == nil {
 			t.Errorf("XXXX> Failed: no node found: %s", result.Error)
@@ -673,7 +673,7 @@ func TestNondata(t *testing.T) {
 		}
 		rule := record.rule
 		t.Logf("====> RULE  : %s = %s", ruleName, rule.String())
-		cs := NewCharstreamString(sample)
+		cs := NewCharstreamFromString(sample)
 		result := rule.Eval(g, cs, SUGGEST_SKIP)
 		if result.Node == nil {
 			t.Errorf("XXXX> Failed: no node found: %s", result.Error)
@@ -713,7 +713,7 @@ func TestMergeStickyNodes(t *testing.T) {
 			logSample = logSample[0:40] + "..."
 		}
 		t.Logf("====> SAMPLE: \"%s\"", logSample)
-		cs := NewCharstreamString(sample)
+		cs := NewCharstreamFromString(sample)
 		ast, err := g.Eval(cs, LevelBasic)
 		if err != nil {
 			if stickyNodeCount != 0 {

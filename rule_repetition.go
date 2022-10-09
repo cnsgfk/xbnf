@@ -27,7 +27,7 @@ func (inst *RepetitionRule) Eval(grammar *Grammar, charstream ICharstream, flagL
 	var nodes []*Node // all found matched nodes
 	rule := inst.rule
 	for {
-		cs = NewCharstreamPrepend(cs, evalResult.CharsUnused)
+		cs = newCharstreamPrepend(cs, evalResult.CharsUnused)
 		if cs.Peek() == EOFChar {
 			break
 		}
@@ -62,6 +62,10 @@ func (inst *RepetitionRule) Eval(grammar *Grammar, charstream ICharstream, flagL
 			// we didn't find a match, should prepare the evalResult and exist
 			evalResult.Error = result.Error
 			break
+		}
+
+		if node.Position == nil {
+			node.Position = result.Node.Position
 		}
 
 		// got another match

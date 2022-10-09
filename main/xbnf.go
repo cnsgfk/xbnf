@@ -70,7 +70,7 @@ func main() {
 
 	for _, text := range texts {
 		fmt.Printf("\nParsing text: %s\n", text)
-		cs := xbnf.NewCharstreamString(text)
+		cs := xbnf.NewCharstreamFromString(text)
 		ast, err := grammar.Eval(cs, xbnf.LevelBasic)
 		if err != nil {
 			fmt.Printf("ERROR: %s", err)
@@ -89,7 +89,7 @@ func main() {
 			fmt.Printf("ERROR: %s", err)
 			return
 		}
-		cs := xbnf.NewCharstreamString(string(text))
+		cs := xbnf.NewCharstreamFromString(string(text))
 		ast, err := grammar.Eval(cs, xbnf.LevelBasic)
 		if err != nil {
 			fmt.Printf("ERROR: %s", err)

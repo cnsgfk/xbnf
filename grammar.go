@@ -87,7 +87,7 @@ func (inst *Grammar) ParseRule(name string, ruleStr string) (IRule, error) {
 	}
 	ruleStr = strings.TrimSpace(ruleStr)
 	var rule IRule
-	cs := NewCharstreamString(ruleStr)
+	cs := NewCharstreamFromString(ruleStr)
 	if err != nil {
 		return nil, err
 	}
@@ -235,12 +235,12 @@ func (inst *Grammar) EvalEmbed(ruleName string, sample string) *EvalResult {
 	rule := record.Rule()
 	node := &Node{RuleType: TypeEmbed, RuleName: ruleName}
 	evalResult.Node = node
-	cs := NewCharstreamString(sample)
+	cs := NewCharstreamFromString(sample)
 	var result *EvalResult
 	var text []rune
 	for {
 		result = rule.Eval(inst, cs, NOT_SKIP)
-		cs = NewCharstreamPrepend(cs, result.CharsUnused)
+		cs = newCharstreamPrepend(cs, result.CharsUnused)
 		if result.Node == nil { // no match
 			char := cs.Next()
 			if char == EOFChar {
@@ -274,7 +274,7 @@ func (inst *Grammar) EvalRule(ruleName string, sample string) *EvalResult {
 		return evalResult
 	}
 	rule := record.Rule()
-	cs := NewCharstreamString(sample)
+	cs := NewCharstreamFromString(sample)
 	return rule.Eval(inst, cs, SUGGEST_SKIP)
 }
 
@@ -311,7 +311,7 @@ func (inst *Grammar) EvalRaw(charstream ICharstream) (*AST, error) {
 	var charsUnused []rune
 	flagLeadingSpaces := SUGGEST_SKIP
 	for {
-		cs = NewCharstreamPrepend(cs, charsUnused)
+		cs = newCharstreamPrepend(cs, charsUnused)
 		if cs.Peek() == EOFChar {
 			break
 		}
@@ -319,7 +319,7 @@ func (inst *Grammar) EvalRaw(charstream ICharstream) (*AST, error) {
 		resultsError := make(map[string]*EvalResult)
 		var maxCharsRead []rune
 		for name, ruleRecord := range inst.rootRules {
-			cs = NewCharstreamPrepend(cs, maxCharsRead)
+			cs = newCharstreamPrepend(cs, maxCharsRead)
 			result := ruleRecord.rule.Eval(inst, cs, flagLeadingSpaces)
 			if len(maxCharsRead) < len(result.CharsRead) {
 				maxCharsRead = result.CharsRead
