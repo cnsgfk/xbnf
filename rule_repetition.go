@@ -17,6 +17,19 @@ type RepetitionRule struct {
 	max uint // 0 means unlimited or infinity
 }
 
+func (inst *RepetitionRule) desc() string {
+	var desc string
+	if inst.max == 0 {
+		desc = fmt.Sprintf("%d or more time(s)", inst.min)
+	} else {
+		desc = fmt.Sprintf("%d to %d time(s)", inst.min, inst.max)
+	}
+	if inst.name != "" {
+		return fmt.Sprintf("%s: %s", inst.name, desc)
+	}
+	return fmt.Sprintf("%s of %s", desc, inst.rule.desc())
+}
+
 // RepetitionRule Eval will always returns a result with a RepetitionNode, which may contain
 // 0 or more children INode
 func (inst *RepetitionRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
@@ -61,6 +74,7 @@ func (inst *RepetitionRule) Eval(grammar *Grammar, charstream ICharstream, flagL
 		if result.Node == nil {
 			// we didn't find a match, should prepare the evalResult and exist
 			evalResult.Error = result.Error
+			evalResult.ErrIdx = charstream.Cursor()
 			break
 		}
 
@@ -79,6 +93,10 @@ func (inst *RepetitionRule) Eval(grammar *Grammar, charstream ICharstream, flagL
 		// eval fails, didn't found enough repetitions
 		// all chars read should be unused
 		evalResult.CharsUnused = evalResult.CharsRead
+		if evalResult.Error == nil {
+			evalResult.Error = fmt.Errorf("%s: %d less than minimal %d", inst.desc(), len(nodes), inst.min)
+			evalResult.ErrIdx = charstream.Cursor()
+		}
 		return evalResult
 	}
 

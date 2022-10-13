@@ -10,6 +10,13 @@ type OptionRule struct {
 	rule IRule
 }
 
+func (inst *OptionRule) desc() string {
+	if inst.name != "" {
+		return fmt.Sprintf("optional %s", inst.name)
+	}
+	return fmt.Sprintf("optional %s", inst.rule.desc())
+}
+
 // Eval with option rule always produce a OptionNode, whose Child node may be nil, meaning
 // optional token not found
 func (inst *OptionRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {

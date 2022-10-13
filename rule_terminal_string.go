@@ -10,6 +10,13 @@ type TerminalStringRule struct {
 	text []rune
 }
 
+func (inst *TerminalStringRule) desc() string {
+	if inst.name == "" {
+		return "\"" + string(inst.text) + "\""
+	}
+	return inst.name
+}
+
 func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{
 		Virtual: inst.virtual,
@@ -17,9 +24,8 @@ func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, f
 		Sticky:  false,
 	}
 	if charstream.Peek() == EOFChar {
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.Error = fmt.Errorf("missing %s at EOF", inst.desc())
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 	node := &Node{
@@ -29,6 +35,8 @@ func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, f
 		NonData:  inst.nondata,
 		Sticky:   false,
 	}
+
+	startPos := charstream.Position()
 
 	// String rule always skip leading white spaces unless explicitly ask not to, ie. flagLeadingSpaces=NOT_SKIP(3)
 	text := inst.text
@@ -40,9 +48,8 @@ func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, f
 		if len(skippedWSpaces) < len(leadingWSpaces) {
 			// for sure not match
 			evalResult.CharsUnused = evalResult.CharsRead
-			if inst.name != "" {
-				evalResult.Error = fmt.Errorf("missing %s", inst.name)
-			}
+			evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+			evalResult.ErrIdx = charstream.Cursor()
 			return evalResult
 		}
 		// now we need to check if the leadingWSpace matches the end of skippedWSpace
@@ -51,9 +58,8 @@ func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, f
 			if skippedWSpace != leadingWSpaces[i] {
 				// not match
 				evalResult.CharsUnused = evalResult.CharsRead
-				if inst.name != "" {
-					evalResult.Error = fmt.Errorf("missing %s", inst.name)
-				}
+				evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+				evalResult.ErrIdx = charstream.Cursor()
 				return evalResult
 			}
 		}
@@ -65,9 +71,8 @@ func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, f
 	evalResult.CharsRead = append(evalResult.CharsRead, charsRead...)
 	if !succeeded {
 		evalResult.CharsUnused = evalResult.CharsRead
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 	node.Position = charstream.PositionLookup(charstream.Cursor() - len(inst.text))

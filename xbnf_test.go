@@ -25,7 +25,7 @@ func testRule(t *testing.T, grammar *Grammar, ruleName string, sample string, ex
 	t.Logf("CharsUnused:%s*", string(result.CharsUnused))
 	if result.Node == nil {
 		if expected == "" {
-			t.Logf("====> Passed")
+			t.Logf("====> Passed: %s", result.Error)
 		} else {
 			t.Errorf("XXXX> Failed: %s", result.Error)
 		}
@@ -903,4 +903,59 @@ func TestEmbed(t *testing.T) {
 	t.Run("test4.1", func(t *testing.T) {
 		tester(t, grammar, "variable1", "123${A456} ${b100} another text", 5)
 	})
+}
+
+func TestErrorReport(t *testing.T) {
+	g, err := NewGrammarFromString(`
+		digit      = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+		integer    = digit { digit }
+		float      = integer '.' digit { digit }
+		number     = "" [ '-' ] integer | float
+		string     = < #'"' '\\' ^\u000A #'"' >
+		bool       = "true" | "false"
+		literal    = number | string | bool | "null"
+		array      = #"[" [ value { #"," value } ] #"]" 
+		kv         = string #":" value 
+		//object     = ( #"{" [ kv { #"," kv } ] #"}" ) | ( #"{" #"}")
+		object     = #"{" [ kv { #"," kv } ] #"}"
+		value      = literal | array | object
+		json       = value // root node
+		//json       = literal | array | object // root node
+	`)
+	if err != nil {
+		t.Errorf("Failed: %s", err)
+		return
+	}
+	t.Logf("\nGrammar:%s", g.Serialize(false))
+	t.Run("t1.block", func(t *testing.T) {
+		testRule(t, g, "string", `"My Word`, "")
+	})
+	t.Run("t2.kv", func(t *testing.T) {
+		testRule(t, g, "kv", `"name" 12`, "")
+		testRule(t, g, "kv", `name": 12`, "")
+		testRule(t, g, "kv", `"name: 12`, "")
+		testRule(t, g, "kv", `"name": a12`, "")
+	})
+	t.Run("t3.value", func(t *testing.T) {
+		testRule(t, g, "value", `
+		{ a: true, "b": null,}
+				`, "")
+	})
+	t.Run("t101.", func(t *testing.T) {
+		ast, err := g.Eval(NewCharstreamFromString(``), LevelBasic)
+		if err != nil {
+			t.Logf("Passed: %s", err)
+		} else {
+			t.Errorf("Failed: unexpected AST\n%s", ast.StringTree(nil))
+		}
+		ast, err = g.Eval(NewCharstreamFromString(`
+{ "a": true,"b": null,}
+		`), LevelBasic)
+		if err != nil {
+			t.Logf("Passed: %s", err)
+		} else {
+			t.Errorf("Failed: unexpected AST\n%s", ast.StringTree(nil))
+		}
+	})
+
 }

@@ -11,6 +11,12 @@ type TerminalCharRule struct {
 	definedAsUnicode bool
 }
 
+func (inst *TerminalCharRule) desc() string {
+	if inst.name == "" {
+		return "'" + string(inst.text) + "'"
+	}
+	return inst.name
+}
 func (inst *TerminalCharRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{
 		Virtual: inst.virtual,
@@ -18,9 +24,8 @@ func (inst *TerminalCharRule) Eval(grammar *Grammar, charstream ICharstream, fla
 		Sticky:  true,
 	}
 	if charstream.Peek() == EOFChar {
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.Error = fmt.Errorf("missing %s at EOF", inst.desc())
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 	node := &Node{
@@ -30,6 +35,8 @@ func (inst *TerminalCharRule) Eval(grammar *Grammar, charstream ICharstream, fla
 		NonData:  inst.nondata,
 		Sticky:   true,
 	}
+
+	startPos := charstream.Position()
 
 	if flagLeadingSpaces == SUGGEST_SKIP {
 		skippedSpaces := charstream.SkipSpaces()
@@ -46,6 +53,8 @@ func (inst *TerminalCharRule) Eval(grammar *Grammar, charstream ICharstream, fla
 				}
 			}
 			evalResult.CharsUnused = evalResult.CharsRead
+			evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+			evalResult.ErrIdx = charstream.Cursor()
 			return evalResult
 		}
 	}
@@ -53,9 +62,8 @@ func (inst *TerminalCharRule) Eval(grammar *Grammar, charstream ICharstream, fla
 	char := charstream.Peek()
 	if char != inst.text {
 		evalResult.CharsUnused = evalResult.CharsRead
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 	node.Position = charstream.Position()

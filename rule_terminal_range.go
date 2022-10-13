@@ -12,6 +12,13 @@ type TerminalRangeRule struct {
 	endAsUnicode   bool
 }
 
+func (inst *TerminalRangeRule) desc() string {
+	if inst.name == "" {
+		return fmt.Sprintf("%c-%c", inst.begin, inst.end)
+	}
+	return inst.name
+}
+
 func (inst *TerminalRangeRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{
 		Virtual: inst.virtual,
@@ -19,9 +26,8 @@ func (inst *TerminalRangeRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		Sticky:  true,
 	}
 	if charstream.Peek() == EOFChar {
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.Error = fmt.Errorf("missing %s at EOF", inst.desc())
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 	node := &Node{
@@ -47,6 +53,8 @@ func (inst *TerminalRangeRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		}
 	}
 
+	startPos := charstream.Position()
+
 	char := charstream.Peek()
 	if inst.begin <= char && char <= inst.end {
 		// matched
@@ -58,11 +66,8 @@ func (inst *TerminalRangeRule) Eval(grammar *Grammar, charstream ICharstream, fl
 	}
 
 	evalResult.CharsUnused = evalResult.CharsRead
-	if inst.name == "" {
-		evalResult.Error = fmt.Errorf("missing %s", inst.String())
-	} else {
-		evalResult.Error = fmt.Errorf("%s:missing %s", inst.name, inst.String())
-	}
+	evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+	evalResult.ErrIdx = charstream.Cursor()
 	return evalResult
 }
 

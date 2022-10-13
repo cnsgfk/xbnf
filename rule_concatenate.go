@@ -10,6 +10,20 @@ type ConcatenateRule struct {
 	rules []IRule
 }
 
+func (inst *ConcatenateRule) desc() string {
+	if inst.name != "" {
+		return inst.name
+	}
+	var buf strings.Builder
+	count := len(inst.rules)
+	buf.WriteString(inst.rules[0].desc())
+	for i := 1; i < count-1; i++ {
+		buf.WriteString(", " + inst.rules[i].desc())
+	}
+	buf.WriteString(" and " + inst.rules[count-1].desc())
+	return buf.String()
+}
+
 func (inst *ConcatenateRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{Virtual: inst.virtual, NonData: inst.nondata}
 	evalResult.Sticky = true // will change to false if any of the child result is non-sticky
@@ -47,11 +61,8 @@ func (inst *ConcatenateRule) Eval(grammar *Grammar, charstream ICharstream, flag
 		if result.Node == nil {
 			// one of the rule doesn't match, resulting this rule does not match
 			evalResult.CharsUnused = evalResult.CharsRead
-			if inst.name != "" {
-				evalResult.Error = fmt.Errorf("%s: %s", inst.name, result.Error)
-			} else {
-				evalResult.Error = result.Error
-			}
+			evalResult.Error = fmt.Errorf("%s: %s", inst.desc(), result.Error)
+			evalResult.ErrIdx = result.ErrIdx
 			return evalResult
 		}
 

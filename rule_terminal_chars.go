@@ -10,6 +10,13 @@ type TerminalCharsRule struct {
 	text []rune
 }
 
+func (inst *TerminalCharsRule) desc() string {
+	if inst.name == "" {
+		return "'" + string(inst.text) + "'"
+	}
+	return inst.name
+}
+
 func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{
 		Virtual: inst.virtual,
@@ -17,9 +24,8 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		Sticky:  true,
 	}
 	if charstream.Peek() == EOFChar {
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.Error = fmt.Errorf("missing %s at EOF", inst.desc())
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 	node := &Node{
@@ -29,6 +35,8 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		NonData:  inst.nondata,
 		Sticky:   true,
 	}
+
+	startPos := charstream.Position()
 
 	startCursor := charstream.Cursor()
 	text := inst.text
@@ -40,9 +48,8 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		if len(skippedWSpaces) < len(leadingWSpaces) {
 			// for sure not match
 			evalResult.CharsUnused = evalResult.CharsRead
-			if inst.name != "" {
-				evalResult.Error = fmt.Errorf("missing %s", inst.name)
-			}
+			evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+			evalResult.ErrIdx = charstream.Cursor()
 			return evalResult
 		}
 		startCursor = startCursor + len(skippedWSpaces)
@@ -52,9 +59,8 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 			if skippedWSpace != leadingWSpaces[i] {
 				// not match
 				evalResult.CharsUnused = evalResult.CharsRead
-				if inst.name != "" {
-					evalResult.Error = fmt.Errorf("missing %s", inst.name)
-				}
+				evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+				evalResult.ErrIdx = charstream.Cursor()
 				return evalResult
 			}
 		}
@@ -66,9 +72,8 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 	evalResult.CharsRead = append(evalResult.CharsRead, charsRead...)
 	if !succeeded {
 		evalResult.CharsUnused = evalResult.CharsRead
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.Error = fmt.Errorf("missing %s at %s", inst.desc(), startPos.String())
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 	node.Position = charstream.PositionLookup(startCursor)

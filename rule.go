@@ -45,8 +45,10 @@ const (
 const negationChar = '^' // char can be places in front of a rule defintion to means negation
 
 type EvalResult struct {
-	Node  *Node
-	Error error
+	Node *Node
+
+	Error  error
+	ErrIdx int // the index where the error occurs
 
 	// total chars read from the Charstream, including those CharsUnused, if there
 	// is any, at the end
@@ -125,6 +127,9 @@ type IRule interface {
 	setVirtual(isVirtual bool)
 	setNonData(isNonData bool)
 
+	desc() string
+
+	// Returns the name of the rule.
 	Name() string
 
 	IsVirtual() bool

@@ -10,6 +10,13 @@ type GroupRule struct {
 	rule IRule
 }
 
+func (inst *GroupRule) desc() string {
+	if inst.name != "" {
+		return inst.name
+	}
+	return inst.rule.desc()
+}
+
 func (inst *GroupRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	node := &Node{RuleType: TypeGroup, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
 	evalResult := inst.rule.Eval(grammar, charstream, flagLeadingSpaces)

@@ -16,6 +16,13 @@ type BlockRule struct {
 	excludes     []IRule
 }
 
+func (inst *BlockRule) desc() string {
+	if inst.name != "" {
+		return inst.name
+	}
+	return fmt.Sprintf("%s to %s", inst.open.desc(), inst.close.desc())
+}
+
 func (inst *BlockRule) String() string {
 	var buf strings.Builder
 	buf.WriteString(string(inst.annotation()))
@@ -76,9 +83,10 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		charsUnused = result.CharsUnused
 		node.Position = result.Node.Position
 	} else {
-		evalResult.Error = fmt.Errorf("missing block open token")
+		evalResult.Error = result.Error
 		evalResult.CharsRead = result.CharsRead
 		evalResult.CharsUnused = result.CharsUnused
+		evalResult.ErrIdx = charstream.Cursor()
 		return evalResult
 	}
 
@@ -130,6 +138,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 					continue
 				}
 				evalResult.Error = fmt.Errorf("text `%s` is not allowed in text block", string(resultExclude.charsUsed()))
+				evalResult.ErrIdx = charstream.Cursor()
 				evalResult.CharsRead = append(charsUsed, content.Chars...)
 				evalResult.CharsRead = append(evalResult.CharsRead, resultExclude.CharsRead...)
 				evalResult.CharsUnused = evalResult.CharsRead
@@ -160,7 +169,8 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		char := cs.Peek()
 		if char == EOFChar {
 			charsUsed = append(charsUsed, content.Chars...)
-			evalResult.Error = fmt.Errorf("missing block close token")
+			evalResult.Error = fmt.Errorf("missing %s at EOF", inst.close.desc())
+			evalResult.ErrIdx = charstream.Cursor()
 			break
 		}
 		char = cs.Next()

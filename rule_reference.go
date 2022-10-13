@@ -10,6 +10,10 @@ type ReferenceRule struct {
 	refName string
 }
 
+func (inst *ReferenceRule) desc() string {
+	return inst.refName
+}
+
 func (inst *ReferenceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	ruleRecord := grammar.GetRecord(inst.refName)
 	if ruleRecord == nil {

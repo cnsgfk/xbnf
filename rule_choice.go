@@ -11,6 +11,26 @@ type ChoiceRule struct {
 	groups [][]IRule // list of order groups, each group is a list of non-ordered choice
 }
 
+func (inst *ChoiceRule) desc() string {
+	if inst.name != "" {
+		return inst.name
+	}
+	var rules []IRule
+	for _, g := range inst.groups {
+		for _, r := range g {
+			rules = append(rules, r)
+		}
+	}
+	var buf strings.Builder
+	count := len(rules)
+	buf.WriteString(rules[0].desc())
+	for i := 1; i < count-1; i++ {
+		buf.WriteString(", " + rules[i].desc())
+	}
+	buf.WriteString(" and " + rules[count-1].desc())
+	return buf.String()
+}
+
 func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{Virtual: inst.virtual, NonData: inst.nondata}
 	node := &Node{RuleType: TypeChoice, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
@@ -18,6 +38,9 @@ func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadi
 	sticky := true
 	var resultsMatched []*EvalResult
 	var resultFound *EvalResult
+	var maxErr error
+	var maxErrCursor int
+	//startPos := charstream.Position()
 	for _, group := range inst.groups {
 		resultsMatched = nil
 		resultFound = nil
@@ -32,6 +55,11 @@ func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadi
 			}
 			if result.Node != nil {
 				resultsMatched = append(resultsMatched, result)
+			} else {
+				if result.ErrIdx > maxErrCursor {
+					maxErrCursor = result.ErrIdx
+					maxErr = result.Error
+				}
 			}
 		}
 		matches := len(resultsMatched)
@@ -80,9 +108,8 @@ func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadi
 		evalResult.CharsUnused = evalResult.CharsRead[resultFound.countCharsUsed():]
 	} else {
 		evalResult.CharsUnused = evalResult.CharsRead
-		if inst.name != "" {
-			evalResult.Error = fmt.Errorf("missing %s", inst.name)
-		}
+		evalResult.ErrIdx = maxErrCursor
+		evalResult.Error = fmt.Errorf("%s: %s", inst.desc(), maxErr)
 	}
 	return evalResult
 }

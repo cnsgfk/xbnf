@@ -13,6 +13,10 @@ func EOF() *EOFRule {
 	return rule
 }
 
+func (inst *EOFRule) desc() string {
+	return string(TypeEOF)
+}
+
 func (inst *EOFRule) Name() string {
 	return string(TypeEOF)
 }
@@ -49,6 +53,7 @@ func (inst *EOFRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingS
 	} else {
 		evalResult.CharsUnused = evalResult.CharsRead
 		evalResult.Error = fmt.Errorf("missing EOF")
+		evalResult.ErrIdx = charstream.Cursor()
 	}
 
 	return evalResult

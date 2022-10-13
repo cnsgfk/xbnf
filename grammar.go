@@ -58,6 +58,25 @@ type Grammar struct {
 	validated bool
 }
 
+func (inst *Grammar) desc() string {
+	var buf strings.Builder
+	i := 0
+	total := len(inst.rootRules)
+	for _, record := range inst.rootRules {
+		if i > 0 {
+			if i == total-1 && total > 1 {
+				buf.WriteString(" or " + record.rule.desc())
+			} else {
+				buf.WriteString(", " + record.rule.desc())
+			}
+		} else {
+			buf.WriteString(record.rule.desc())
+		}
+		i++
+	}
+	return buf.String()
+}
+
 func (inst *Grammar) GetRecord(ruleName string) *RuleRecord {
 	//inst.lock.RLock()
 	//defer inst.lock.RUnlock()
@@ -304,7 +323,7 @@ func (inst *Grammar) Eval(charstream ICharstream, simplifyLevel int) (*AST, erro
 // Evaluate is the driver of parsing.
 func (inst *Grammar) EvalRaw(charstream ICharstream) (*AST, error) {
 	if charstream.Peek() == EOFChar {
-		return nil, fmt.Errorf("EOF encountered")
+		return nil, fmt.Errorf("Empty Stream/EOF encountered")
 	}
 	ast := &AST{}
 	cs := charstream
@@ -338,7 +357,7 @@ func (inst *Grammar) EvalRaw(charstream ICharstream) (*AST, error) {
 			for _, result := range resultsError {
 				buf.WriteString(fmt.Sprintf("%s; ", result.Error))
 			}
-			return nil, fmt.Errorf("no matches found: %s", buf.String())
+			return nil, fmt.Errorf("must be %s: %s", inst.desc(), buf.String())
 		case 1:
 			var result *EvalResult
 			for _, r := range resultsMatched {
@@ -671,6 +690,8 @@ func NewGrammarFromFile(filexbnf string) (*Grammar, error) {
 	return nil, err
 }
 
+// NewGrammarFromString creates a Grammar object from a string in which each
+// line is a rule definition with a name.
 func NewGrammarFromString(grammarText string) (*Grammar, error) {
 	grammar := NewGrammar()
 	lines := strings.Split(grammarText, "\n")
