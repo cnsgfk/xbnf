@@ -99,16 +99,21 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 	cs = newCharstreamPrepend(cs, charsUnused)
 	content.Position = cs.Position()
 	var closeResult *EvalResult
+	var escapeChars []rune
 	for {
 		// check if we have an escape as next match
 		escaped := false
+		escapeChars = nil
 		if inst.escape != nil { // evaluation escape
 			result = inst.escape.Eval(grammar, cs, NOT_SKIP) // do not skip space chars
 			if result.Node != nil {
 				charsUsed = append(charsUsed, result.CharsRead[:result.countCharsUsed()]...)
 				charsUnused = result.CharsUnused
-				content.Chars = append(content.Chars, result.charsUsed()...) // the escape char should be preserved
+				escaped = true
+				escapeChars = result.charsUsed() // save the escapeChars so we can decide later whether to include them in the result content
+				// content.Chars = append(content.Chars, result.charsUsed()...) // the escape char should NOT be preserved
 				// check if there is an escape token after escape token
+				/**
 				cs = newCharstreamPrepend(cs, charsUnused)
 				result = inst.escape.Eval(grammar, cs, NOT_SKIP) // do not skip space chars
 				if result.Node != nil {
@@ -121,6 +126,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 					escaped = true
 					charsUnused = result.CharsRead
 				}
+				*/
 			} else {
 				charsUnused = result.CharsRead
 			}
@@ -164,6 +170,8 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 			charsUsed = append(charsUsed, content.Chars...)
 			charsUsed = append(charsUsed, result.CharsRead[:result.countCharsUsed()]...)
 			break
+		} else {
+			content.Chars = append(content.Chars, escapeChars...)
 		}
 		cs = newCharstreamPrepend(cs, charsUnused)
 		char := cs.Peek()
@@ -174,6 +182,7 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 			break
 		}
 		char = cs.Next()
+		content.Chars = append(content.Chars, escapeChars...)
 		content.Chars = append(content.Chars, char)
 		charsUnused = nil
 	}

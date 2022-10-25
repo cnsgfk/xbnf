@@ -23,7 +23,8 @@ A syntax parser with enhanced BNF rules
   7. Group Rule - A group rule groups a set of rules so they can participate in other rule definition as a whole.
      A group rule is enclosed in a pair of round brackets: ()
   8. Block Rule - A rule that will matches a sequence of arbitrary characters. The rule must specify an opening rule 
-     and a closing rule. And optionally it may has an escape rule and 0 or more exclude rule. 
+     and a closing rule. And optionally it may has an escape rule and 0 or more exclude rules. The escape rule only 
+     applys to exclude rules and closing rule. 
      A block Rule is enclosed in a pair of angle brackets <>. 
      If there is a '!' before the right angle bracket '>', such as '!>', it means the chars consumed by the close rule 
      matching will be reused to evaluate rules following the block rule.

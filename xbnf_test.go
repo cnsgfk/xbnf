@@ -532,25 +532,25 @@ func TestBlock(t *testing.T) {
 		testRule(t, grammar, "string1", `  "/* the block comment */"`, `"/* the block comment */"`)
 	})
 	t.Run("t7", func(t *testing.T) {
-		testRule(t, grammar, "string", ` " this \" escape "`, `" this \" escape "`)
+		testRule(t, grammar, "string", ` " this \" escape "`, `" this " escape "`)
 	})
 	t.Run("t8", func(t *testing.T) {
-		testRule(t, grammar, "string", ` " this \" escape with \n new line"`, `" this \" escape with \n new line"`)
+		testRule(t, grammar, "string", ` " this \" escape with \n new line"`, `" this " escape with \\n new line"`)
 	})
 	t.Run("t9", func(t *testing.T) {
-		testRule(t, grammar, "string", ` " this \\" escape "`, `" this \\"`)
+		testRule(t, grammar, "string", ` " this \\" escape "`, `" this \\\"`)
 	})
 	t.Run("t10", func(t *testing.T) {
 		testRule(t, grammar, "key", " this key = that value ", `this key =`)
 	})
 	t.Run("t11", func(t *testing.T) {
-		testRule(t, grammar, "key", " this \\= key = that value ", `this \= key =`)
+		testRule(t, grammar, "key", ` this \\= key = that value `, `this \\\=`)
 	})
 	t.Run("t12", func(t *testing.T) {
 		testRule(t, grammar, "value", " this is a value ", `this is a value `)
 	})
 	t.Run("t13", func(t *testing.T) {
-		testRule(t, grammar, "value", " this is \\\n a value ", "this is \\\n a value ")
+		testRule(t, grammar, "value", ` this is \\\n a value `, `this is \\\\\n a value `)
 	})
 	t.Run("t14", func(t *testing.T) {
 		testRule(t, grammar, "property", " key = value ", "key = value ")
