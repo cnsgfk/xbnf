@@ -59,9 +59,7 @@ func (inst *BlockRule) StringWithIndent(indent string) string {
 // chars read so far in order to find the quote.
 func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{
-		Virtual: inst.virtual,
-		NonData: inst.nondata,
-		Sticky:  false,
+		Sticky: false,
 	}
 	node := &Node{
 		RuleType: TypeBlock,

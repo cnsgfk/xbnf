@@ -32,7 +32,9 @@ func (inst *ChoiceRule) desc() string {
 }
 
 func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
-	evalResult := &EvalResult{Virtual: inst.virtual, NonData: inst.nondata}
+	evalResult := &EvalResult{
+		Sticky: false,
+	}
 	node := &Node{RuleType: TypeChoice, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
 	cs := charstream
 	sticky := true

@@ -19,9 +19,7 @@ func (inst *TerminalStringRule) desc() string {
 
 func (inst *TerminalStringRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{
-		Virtual: inst.virtual,
-		NonData: inst.nondata,
-		Sticky:  false,
+		Sticky: false,
 	}
 	if charstream.Peek() == EOFChar {
 		evalResult.Error = fmt.Errorf("missing %s at EOF", inst.desc())

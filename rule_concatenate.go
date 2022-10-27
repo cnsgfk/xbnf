@@ -25,8 +25,9 @@ func (inst *ConcatenateRule) desc() string {
 }
 
 func (inst *ConcatenateRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
-	evalResult := &EvalResult{Virtual: inst.virtual, NonData: inst.nondata}
-	evalResult.Sticky = true // will change to false if any of the child result is non-sticky
+	evalResult := &EvalResult{
+		Sticky: true, // will change to false if any of the child result is non-sticky
+	}
 	node := &Node{RuleType: TypeConcatenate, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
 	cs := charstream
 	for _, rule := range inst.rules {

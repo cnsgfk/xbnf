@@ -33,8 +33,9 @@ func (inst *RepetitionRule) desc() string {
 // RepetitionRule Eval will always returns a result with a RepetitionNode, which may contain
 // 0 or more children INode
 func (inst *RepetitionRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
-	evalResult := &EvalResult{Virtual: inst.virtual, NonData: inst.nondata}
-	evalResult.Sticky = true // will change to false if any of the child result is non-sticky
+	evalResult := &EvalResult{
+		Sticky: true, // will change to false if any of the child result is non-sticky
+	}
 	node := &Node{RuleType: TypeRepetition, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
 	cs := charstream
 	var nodes []*Node // all found matched nodes

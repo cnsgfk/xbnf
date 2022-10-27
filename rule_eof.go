@@ -33,9 +33,7 @@ func (inst *EOFRule) StringWithIndent(indent string) string {
 
 func (inst *EOFRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	evalResult := &EvalResult{
-		Virtual: true,
-		NonData: true,
-		Sticky:  true,
+		Sticky: true,
 	}
 	if flagLeadingSpaces == 1 {
 		evalResult.CharsRead = charstream.SkipSpaces()

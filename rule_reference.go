@@ -18,35 +18,23 @@ func (inst *ReferenceRule) Eval(grammar *Grammar, charstream ICharstream, flagLe
 	ruleRecord := grammar.GetRecord(inst.refName)
 	if ruleRecord == nil {
 		evalResult := &EvalResult{
-			Virtual: inst.virtual,
-			NonData: inst.nondata,
-			Error:   fmt.Errorf("rule '%s' not defined", inst),
+			Error: fmt.Errorf("rule '%s' not defined", inst),
 		}
 		return evalResult
 	}
 	evalResult := ruleRecord.rule.Eval(grammar, charstream, flagLeadingSpaces)
-	if inst.virtual {
-		var isVirtual bool
-		if evalResult.Virtual {
-			isVirtual = false
+	if inst.virtual && evalResult.Node != nil {
+		if evalResult.Node.Virtual { // virtual && virtual is non-virtual
+			evalResult.Node.Virtual = false
 		} else {
-			isVirtual = true
-		}
-		evalResult.Virtual = isVirtual
-		if evalResult.Node != nil {
-			evalResult.Node.Virtual = isVirtual
+			evalResult.Node.Virtual = true
 		}
 	}
-	if inst.nondata {
-		var isNonData bool
-		if evalResult.NonData {
-			isNonData = false
+	if inst.nondata && evalResult.Node != nil {
+		if evalResult.Node.NonData { // nondata && nondata is data
+			evalResult.Node.NonData = false
 		} else {
-			isNonData = true
-		}
-		evalResult.NonData = isNonData
-		if evalResult.Node != nil {
-			evalResult.Node.NonData = isNonData
+			evalResult.Node.NonData = true
 		}
 	}
 	return evalResult

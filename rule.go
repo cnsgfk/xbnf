@@ -61,10 +61,6 @@ type EvalResult struct {
 	// during parsing, whether space(s) are allowed between the node of this result and its
 	// right neighber rule
 	Sticky bool
-
-	Virtual bool // this result is from a virtual rule
-	NonData bool // this result is from a nondata rule
-	Negated bool // this result is from a negated rule
 }
 
 func (inst *EvalResult) MergeStickyNodes() {
@@ -159,7 +155,7 @@ type ruleBase struct {
 	name    string
 	virtual bool
 	nondata bool
-	negated bool
+	//negated bool
 }
 
 func (inst *ruleBase) Name() string {
@@ -201,9 +197,9 @@ func (inst *ruleBase) annotation() []rune {
 	if inst.nondata {
 		annotation = append(annotation, NonDataSymbol)
 	}
-	if inst.negated {
-		annotation = append(annotation, NegatedSymbol)
-	}
+	//if inst.negated {
+	//	annotation = append(annotation, NegatedSymbol)
+	//}
 	return annotation
 }
 
@@ -305,7 +301,6 @@ func mostGreedy(grammar *Grammar, charStream ICharstream, flagLeadingSpaces int,
 	evalResult.CharsRead = maxCharsRead
 	evalResult.Node = resultFound.Node
 	evalResult.Sticky = resultFound.Sticky
-	evalResult.Virtual = resultFound.Virtual
 	evalResult.CharsUnused = evalResult.CharsRead[resultFound.countCharsUsed():]
 	return evalResult
 }
