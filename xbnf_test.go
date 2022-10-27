@@ -706,6 +706,65 @@ func TestNondata(t *testing.T) {
 	tester(t, grammar, "array", "[ false, true, false ]", 7)
 }
 
+func TestTokenized(t *testing.T) {
+	tester := func(t *testing.T, grammar *Grammar, ruleName string, sample string, expected string) {
+		logSample := sample
+		t.Logf("====> SAMPLE:%s*", logSample)
+		record := grammar.GetRecord(ruleName)
+		if record == nil {
+			t.Errorf("XXXX> Failed: rule '%s' not defined", ruleName)
+			return
+		}
+		rule := record.Rule()
+		t.Logf("====> RULE  : %s = %s", ruleName, rule.String())
+		cs := NewCharstreamFromString(sample)
+		result := rule.Eval(grammar, cs, SUGGEST_SKIP)
+		t.Logf("CharsRead:%s*", string(result.CharsRead))
+		t.Logf("CharsUnused:%s*", string(result.CharsUnused))
+		if result.Node == nil {
+			if expected == "" {
+				t.Logf("====> Passed: %s", result.Error)
+			} else {
+				t.Errorf("XXXX> Failed: %s", result.Error)
+			}
+			return
+		}
+		t.Logf("Actual RAW Node: \n%s", result.Node.StringTree(nil))
+		result.Node.RemoveVirtualNodes()
+		result.Node.RemoveNonDataNodes()
+		result.Node.MergeStickyNodes()
+		result.Node.RemoveRedundantNodes()
+		t.Logf("Actual Node: \n%s", result.Node.StringTree(nil))
+		actual := result.Node.Text()
+		if expected != string(actual) {
+			t.Errorf("XXXX> Failed: expected vs actual\n%s\n%s", expected, string(actual))
+			return
+		}
+		result.Node.RemoveNonDataNodes()
+		t.Logf("====> Passed: %s", string(actual))
+	}
+	grammar, err := NewGrammarFromString(`
+		key = { '0'-'9' | 'a'-'z'| 'A'-'Z' }<1,0>
+		index = { '0'-'9' }<1,0>
+		step = ( #'[' $index #']' ) | ( #'.' $key )
+		path = { step }<1,0>
+	`)
+	if err != nil {
+		t.Errorf("Failed: %s", err)
+		return
+	}
+	t.Logf("Grammar\n%s", grammar.Serialize(false))
+	t.Run("t1", func(t *testing.T) {
+		tester(t, grammar, "path", `.abc`, `abc`)
+	})
+	t.Run("t2", func(t *testing.T) {
+		tester(t, grammar, "path", `[1].ab.cd[1]`, `1abcd1`)
+	})
+	t.Run("t0", func(t *testing.T) {
+		tester(t, grammar, "path", `.abc`, `abc`)
+	})
+}
+
 func TestMergeStickyNodes(t *testing.T) {
 	tester := func(t *testing.T, g *Grammar, sample string, stickyNodeCount int) {
 		logSample := sample

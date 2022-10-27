@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	TokenizedSymbol       = '$'
 	VirtualSymbol         = '~'
 	StickySymbol          = '+'
 	NonDataSymbol         = '#'
@@ -407,6 +408,7 @@ func (inst *Grammar) parse(name string, cs ICharstream, terminators []rune) (IRu
 	var rules []IRule
 	isVirtual := false
 	isNonData := false
+	isTokenized := false
 	cs.SkipSpaces() // spaces are insignificant at the begining of block rule
 EXIT:
 	for {
@@ -428,11 +430,14 @@ EXIT:
 		}
 
 		switch char {
-		case VirtualSymbol, NonDataSymbol: // rule annotations: virtual, nondata, negated
-			if char == VirtualSymbol {
+		case VirtualSymbol, NonDataSymbol, TokenizedSymbol: // rule annotations: virtual, nondata, negated
+			switch char {
+			case VirtualSymbol:
 				isVirtual = true
-			} else {
+			case NonDataSymbol:
 				isNonData = true
+			case TokenizedSymbol:
+				isTokenized = true
 			}
 			cs.Next()
 			// rule annotations can not appear before the ChoiceSymbol
@@ -441,35 +446,35 @@ EXIT:
 			}
 			continue
 		case '\'':
-			r, err := inChar(cs)
+			rule, err := inChar(cs)
 			if err != nil {
 				return nil, err
 			}
-			r.setVirtual(isVirtual)
-			isVirtual = false
-			r.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
+			isTokenized = false
 			isNonData = false
-			rules = append(rules, r)
+			isVirtual = false
+			rules = append(rules, rule)
 		case '\\':
-			r, err := inUnicode(cs)
+			rule, err := inUnicode(cs)
 			if err != nil {
 				return nil, err
 			}
-			r.setVirtual(isVirtual)
-			isVirtual = false
-			r.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
+			isTokenized = false
 			isNonData = false
-			rules = append(rules, r)
+			isVirtual = false
+			rules = append(rules, rule)
 		case '"':
-			r, err := inString(name, cs)
+			rule, err := inString(name, cs)
 			if err != nil {
 				return nil, err
 			}
-			r.setVirtual(isVirtual)
-			isVirtual = false
-			r.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
+			isTokenized = false
 			isNonData = false
-			rules = append(rules, r)
+			isVirtual = false
+			rules = append(rules, rule)
 		case ChoiceSymbol, ChoiceOrderSymbol: // '|' or '>'
 			size := len(rules)
 			switch size {
@@ -480,10 +485,10 @@ EXIT:
 				if err != nil {
 					return nil, err
 				}
-				rule.setVirtual(isVirtual)
-				isVirtual = false
-				rule.setNonData(isNonData)
+				rule.setAnnotation(isTokenized, isNonData, isVirtual)
+				isTokenized = false
 				isNonData = false
+				isVirtual = false
 				rules[0] = rule
 			default:
 				// last rule will participate in the choice, and be replaced by the choice rule
@@ -491,10 +496,10 @@ EXIT:
 				if err != nil {
 					return nil, err
 				}
-				rule.setVirtual(isVirtual)
-				isVirtual = false
-				rule.setNonData(isNonData)
+				rule.setAnnotation(isTokenized, isNonData, isVirtual)
+				isTokenized = false
 				isNonData = false
+				isVirtual = false
 				rules[size-1] = rule
 			}
 		case OptionOpenSymbol: // '['
@@ -502,40 +507,40 @@ EXIT:
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			isVirtual = false
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
+			isTokenized = false
 			isNonData = false
+			isVirtual = false
 			rules = append(rules, rule)
 		case RepetitionOpenSymbol: // '{'
 			rule, err := inRepetition(inst, name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			isVirtual = false
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
+			isTokenized = false
 			isNonData = false
+			isVirtual = false
 			rules = append(rules, rule)
 		case blockOpenSymbol: // '<'
 			rule, err := inBlock(inst, name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			isVirtual = false
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
+			isTokenized = false
 			isNonData = false
+			isVirtual = false
 			rules = append(rules, rule)
 		case GroupOpenSymbol: //'('
 			rule, err := inGroup(inst, name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			isVirtual = false
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
+			isTokenized = false
 			isNonData = false
+			isVirtual = false
 			rules = append(rules, rule)
 		case '/': // must be comments
 			var comment []rune
@@ -559,10 +564,10 @@ EXIT:
 				if err != nil {
 					return nil, err
 				}
-				rule.setVirtual(isVirtual)
-				isVirtual = false
-				rule.setNonData(isNonData)
+				rule.setAnnotation(isTokenized, isNonData, isVirtual)
+				isTokenized = false
 				isNonData = false
+				isVirtual = false
 				rules = append(rules, rule)
 			} else {
 				return nil, fmt.Errorf("invalid char '%c'", char)
@@ -586,6 +591,7 @@ EXIT:
 func (inst *Grammar) parseOne(name string, cs ICharstream) (IRule, error) {
 	isVirtual := false
 	isNonData := false
+	isTokenized := false
 	for {
 		char := cs.Peek()
 		switch char {
@@ -594,11 +600,14 @@ func (inst *Grammar) parseOne(name string, cs ICharstream) (IRule, error) {
 			continue
 		case EOFChar:
 			return nil, fmt.Errorf("EOF encountered, no more rule")
-		case VirtualSymbol, NonDataSymbol:
-			if char == VirtualSymbol {
+		case VirtualSymbol, NonDataSymbol, TokenizedSymbol:
+			switch char {
+			case VirtualSymbol:
 				isVirtual = true
-			} else {
+			case NonDataSymbol:
 				isNonData = true
+			case TokenizedSymbol:
+				isTokenized = true
 			}
 			cs.Next()
 			// rule annotations can not appear before the ChoiceSymbol
@@ -610,56 +619,49 @@ func (inst *Grammar) parseOne(name string, cs ICharstream) (IRule, error) {
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
 			return rule, nil
 		case '\\':
 			rule, err := inUnicode(cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
 			return rule, nil
 		case '"':
 			rule, err := inString(name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
 			return rule, nil
 		case '[':
 			rule, err := inOption(inst, name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
 			return rule, nil
 		case '(':
 			rule, err := inGroup(inst, name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
 			return rule, nil
 		case '{':
 			rule, err := inRepetition(inst, name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
 			return rule, nil
 		case blockOpenSymbol: // '<'
 			rule, err := inBlock(inst, name, cs)
 			if err != nil {
 				return nil, err
 			}
-			rule.setVirtual(isVirtual)
-			rule.setNonData(isNonData)
+			rule.setAnnotation(isTokenized, isNonData, isVirtual)
 			return rule, nil
 		default:
 			if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || char == '_' {
@@ -667,8 +669,7 @@ func (inst *Grammar) parseOne(name string, cs ICharstream) (IRule, error) {
 				if err != nil {
 					return nil, err
 				}
-				rule.setVirtual(isVirtual)
-				rule.setNonData(isNonData)
+				rule.setAnnotation(isTokenized, isNonData, isVirtual)
 				return rule, nil
 			}
 			return nil, fmt.Errorf("invalid char '%c' for any rule", char)

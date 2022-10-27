@@ -120,8 +120,10 @@ func (inst *virtual) setVirtual(isVirtual bool) {
 
 type IRule interface {
 	setName(ruleName string)
-	setVirtual(isVirtual bool)
-	setNonData(isNonData bool)
+	//setVirtual(isVirtual bool)
+	//setNonData(isNonData bool)
+	//setTokenized(isTokenized bool)
+	setAnnotation(isTokenized, isNonData, isVirtual bool)
 
 	desc() string
 
@@ -131,6 +133,8 @@ type IRule interface {
 	IsVirtual() bool
 
 	IsNonData() bool
+
+	IsTokenized() bool
 
 	// Eval evaluates a charstream according to this rule. An EvalResult is returned. If resulting
 	// Node is nil, it means this rule is not match, in which case an error may also be return if
@@ -152,9 +156,10 @@ type IRule interface {
 }
 
 type ruleBase struct {
-	name    string
-	virtual bool
-	nondata bool
+	name      string
+	virtual   bool
+	nondata   bool
+	tokenized bool
 	//negated bool
 }
 
@@ -166,20 +171,34 @@ func (inst *ruleBase) setName(ruleName string) {
 	inst.name = ruleName
 }
 
-func (inst *ruleBase) IsVirtual() bool {
-	return inst.virtual
-}
+//func (inst *ruleBase) setTokenized(isTokenized bool) {
+//	inst.tokenized = isTokenized
+//}
 
-func (inst *ruleBase) setVirtual(isVirtual bool) {
-	inst.virtual = isVirtual
+//func (inst *ruleBase) setNonData(isNonData bool) {
+//	inst.nondata = isNonData
+//}
+
+//func (inst *ruleBase) setVirtual(isVirtual bool) {
+//	inst.virtual = isVirtual
+//}
+
+func (inst *ruleBase) IsTokenized() bool {
+	return inst.tokenized
 }
 
 func (inst *ruleBase) IsNonData() bool {
 	return inst.nondata
 }
 
-func (inst *ruleBase) setNonData(isNonData bool) {
+func (inst *ruleBase) IsVirtual() bool {
+	return inst.virtual
+}
+
+func (inst *ruleBase) setAnnotation(isTokenized, isNonData, isVirtual bool) {
+	inst.tokenized = isTokenized
 	inst.nondata = isNonData
+	inst.virtual = isVirtual
 }
 
 func (inst *ruleBase) Eval(grammar *Grammar, cs ICharstream) *EvalResult {
@@ -191,15 +210,15 @@ func (inst *ruleBase) String() string {
 }
 func (inst *ruleBase) annotation() []rune {
 	var annotation []rune
+	if inst.tokenized {
+		annotation = append(annotation, TokenizedSymbol)
+	}
 	if inst.virtual {
 		annotation = append(annotation, VirtualSymbol)
 	}
 	if inst.nondata {
 		annotation = append(annotation, NonDataSymbol)
 	}
-	//if inst.negated {
-	//	annotation = append(annotation, NegatedSymbol)
-	//}
 	return annotation
 }
 
