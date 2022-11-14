@@ -62,11 +62,12 @@ func (inst *BlockRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadin
 		Sticky: false,
 	}
 	node := &Node{
-		RuleType: TypeBlock,
-		RuleName: inst.name,
-		Virtual:  inst.virtual,
-		NonData:  inst.nondata,
-		Sticky:   false, // block of text is always non-sticky,
+		RuleType:  TypeBlock,
+		RuleName:  inst.name,
+		Virtual:   inst.virtual,
+		NonData:   inst.nondata,
+		Tokenized: inst.tokenized,
+		Sticky:    false, // block of text is always non-sticky,
 	}
 
 	cs := charstream

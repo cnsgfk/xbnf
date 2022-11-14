@@ -28,7 +28,13 @@ func (inst *ConcatenateRule) Eval(grammar *Grammar, charstream ICharstream, flag
 	evalResult := &EvalResult{
 		Sticky: true, // will change to false if any of the child result is non-sticky
 	}
-	node := &Node{RuleType: TypeConcatenate, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
+	node := &Node{
+		RuleType:  TypeConcatenate,
+		RuleName:  inst.name,
+		Tokenized: inst.tokenized,
+		Virtual:   inst.virtual,
+		NonData:   inst.nondata,
+	}
 	cs := charstream
 	for _, rule := range inst.rules {
 		cs = newCharstreamPrepend(cs, evalResult.CharsUnused)

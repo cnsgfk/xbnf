@@ -21,10 +21,11 @@ func (inst *OptionRule) desc() string {
 // optional token not found
 func (inst *OptionRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
 	node := &Node{
-		RuleType: TypeOption,
-		RuleName: inst.name,
-		Virtual:  inst.virtual,
-		NonData:  inst.nondata,
+		RuleType:  TypeOption,
+		RuleName:  inst.name,
+		Tokenized: inst.tokenized,
+		Virtual:   inst.virtual,
+		NonData:   inst.nondata,
 	}
 	evalResult := inst.rule.Eval(grammar, charstream, flagLeadingSpaces)
 	node.Sticky = evalResult.Sticky

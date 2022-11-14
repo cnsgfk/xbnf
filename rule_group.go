@@ -18,7 +18,13 @@ func (inst *GroupRule) desc() string {
 }
 
 func (inst *GroupRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingSpaces int) *EvalResult {
-	node := &Node{RuleType: TypeGroup, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
+	node := &Node{
+		RuleType:  TypeGroup,
+		RuleName:  inst.name,
+		Tokenized: inst.tokenized,
+		Virtual:   inst.virtual,
+		NonData:   inst.nondata,
+	}
 	evalResult := inst.rule.Eval(grammar, charstream, flagLeadingSpaces)
 	if evalResult.Node == nil {
 		evalResult.CharsUnused = evalResult.CharsRead

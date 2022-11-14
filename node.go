@@ -28,9 +28,10 @@ type Node struct {
 	Position   *Position
 
 	// following should be private
-	Sticky  bool
-	Virtual bool
-	NonData bool
+	Sticky    bool
+	Virtual   bool
+	NonData   bool
+	Tokenized bool
 }
 
 func (inst *Node) CountNodes() int {
@@ -91,8 +92,7 @@ func (inst *Node) RemoveVirtualNodes() {
 // MergeStickyNodes should be the 1st step to simplify an AST. It merge adjacent sticky nodes into
 // one single node. This operation is basically a tokenization operation.
 func (inst *Node) MergeStickyNodes() {
-	childrenCount := len(inst.ChildNodes)
-	if childrenCount == 0 { // Do nothing on leaf node
+	if len(inst.ChildNodes) == 0 { // Do nothing on leaf node
 		return
 	}
 
@@ -108,6 +108,23 @@ func (inst *Node) MergeStickyNodes() {
 	}
 
 	inst.ChildNodes = MergeStickyNodes(inst.ChildNodes)
+	/**
+	var childNodes []*Node
+	var prevNode *Node
+	for _, cnode := range inst.ChildNodes {
+		cnode.MergeStickyNodes()
+		if cnode.Sticky && !cnode.Tokenized {
+			if prevNode != nil && prevNode.Sticky && !prevNode.Tokenized {
+				// merge cnode and prevNode
+				prev
+			}
+		} else {
+			inst.Sticky = false
+			prevNode = cnode
+			childNodes = append(childNodes, cnode)
+		}
+	}
+	*/
 }
 
 // MergeStickyNodes merges nodes in a slice of nodes if a node is sticky and its previous sibling is
@@ -239,11 +256,14 @@ func (inst *Node) header(config *NodeTreeConfig) string {
 	if config.PrintRuleType {
 		buf.WriteString(fmt.Sprintf("/%s", inst.RuleType))
 	}
-	if inst.Virtual {
-		buf.WriteRune(VirtualSymbol)
+	if inst.Tokenized {
+		buf.WriteRune(TokenizedSymbol)
 	}
 	if inst.NonData {
 		buf.WriteRune(NonDataSymbol)
+	}
+	if inst.Virtual {
+		buf.WriteRune(VirtualSymbol)
 	}
 	if inst.Sticky {
 		buf.WriteRune(StickySymbol)

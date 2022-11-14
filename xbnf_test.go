@@ -746,7 +746,7 @@ func TestTokenized(t *testing.T) {
 	grammar, err := NewGrammarFromString(`
 		key = { '0'-'9' | 'a'-'z'| 'A'-'Z' }<1,0>
 		index = { '0'-'9' }<1,0>
-		step = ( #'[' $index #']' ) | ( #'.' $key )
+		step = ( #'[' $index #']' ) | ( #'.' key )
 		path = { step }<1,0>
 	`)
 	if err != nil {

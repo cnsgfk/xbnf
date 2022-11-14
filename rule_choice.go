@@ -35,7 +35,13 @@ func (inst *ChoiceRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadi
 	evalResult := &EvalResult{
 		Sticky: false,
 	}
-	node := &Node{RuleType: TypeChoice, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
+	node := &Node{
+		RuleType:  TypeChoice,
+		RuleName:  inst.name,
+		Tokenized: inst.tokenized,
+		Virtual:   inst.virtual,
+		NonData:   inst.nondata,
+	}
 	cs := charstream
 	sticky := true
 	var resultsMatched []*EvalResult

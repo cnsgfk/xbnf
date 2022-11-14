@@ -27,11 +27,12 @@ func (inst *TerminalCharsRule) Eval(grammar *Grammar, charstream ICharstream, fl
 		return evalResult
 	}
 	node := &Node{
-		RuleType: TypeChars,
-		RuleName: inst.name,
-		Virtual:  inst.virtual,
-		NonData:  inst.nondata,
-		Sticky:   true,
+		RuleType:  TypeChars,
+		RuleName:  inst.name,
+		Tokenized: inst.tokenized,
+		Virtual:   inst.virtual,
+		NonData:   inst.nondata,
+		Sticky:    true,
 	}
 
 	startPos := charstream.Position()

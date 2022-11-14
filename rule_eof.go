@@ -40,13 +40,14 @@ func (inst *EOFRule) Eval(grammar *Grammar, charstream ICharstream, flagLeadingS
 	}
 	if EOFChar == charstream.Peek() {
 		evalResult.Node = &Node{
-			RuleType: TypeEOF,
-			RuleName: string(TypeEOF),
-			Virtual:  inst.virtual,
-			NonData:  inst.nondata,
-			Sticky:   true,
-			Chars:    []rune{EOFChar},
-			Position: charstream.Position(),
+			RuleType:  TypeEOF,
+			RuleName:  string(TypeEOF),
+			Tokenized: inst.tokenized,
+			Virtual:   inst.virtual,
+			NonData:   inst.nondata,
+			Sticky:    true,
+			Chars:     []rune{EOFChar},
+			Position:  charstream.Position(),
 		}
 	} else {
 		evalResult.CharsUnused = evalResult.CharsRead

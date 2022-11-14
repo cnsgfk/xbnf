@@ -36,7 +36,13 @@ func (inst *RepetitionRule) Eval(grammar *Grammar, charstream ICharstream, flagL
 	evalResult := &EvalResult{
 		Sticky: true, // will change to false if any of the child result is non-sticky
 	}
-	node := &Node{RuleType: TypeRepetition, RuleName: inst.name, Virtual: inst.virtual, NonData: inst.nondata}
+	node := &Node{
+		RuleType:  TypeRepetition,
+		RuleName:  inst.name,
+		Tokenized: inst.tokenized,
+		Virtual:   inst.virtual,
+		NonData:   inst.nondata,
+	}
 	cs := charstream
 	var nodes []*Node // all found matched nodes
 	rule := inst.rule

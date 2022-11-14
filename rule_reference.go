@@ -23,18 +23,27 @@ func (inst *ReferenceRule) Eval(grammar *Grammar, charstream ICharstream, flagLe
 		return evalResult
 	}
 	evalResult := ruleRecord.rule.Eval(grammar, charstream, flagLeadingSpaces)
-	if inst.virtual && evalResult.Node != nil {
-		if evalResult.Node.Virtual { // virtual && virtual is non-virtual
-			evalResult.Node.Virtual = false
-		} else {
-			evalResult.Node.Virtual = true
+	if evalResult.Node != nil {
+		if inst.tokenized {
+			if evalResult.Node.Tokenized { // tokenized && tokenized is non-tokenized
+				evalResult.Node.Tokenized = false
+			} else {
+				evalResult.Node.Tokenized = true
+			}
 		}
-	}
-	if inst.nondata && evalResult.Node != nil {
-		if evalResult.Node.NonData { // nondata && nondata is data
-			evalResult.Node.NonData = false
-		} else {
-			evalResult.Node.NonData = true
+		if inst.virtual {
+			if evalResult.Node.Virtual { // virtual && virtual is non-virtual
+				evalResult.Node.Virtual = false
+			} else {
+				evalResult.Node.Virtual = true
+			}
+		}
+		if inst.nondata {
+			if evalResult.Node.NonData { // nondata && nondata is data
+				evalResult.Node.NonData = false
+			} else {
+				evalResult.Node.NonData = true
+			}
 		}
 	}
 	return evalResult
